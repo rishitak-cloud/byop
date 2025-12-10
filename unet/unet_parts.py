@@ -32,7 +32,7 @@ class UpSample(nn.Module):
         x = torch.cat([x1, x2], 1)
         return self.conv(x)
 
-class UNet(nn.Module):
+class unet(nn.Module):
     def __init__(self, in_channels, num_classes):
         super().__init__()
         self.down_convolution_1 = DownSample(in_channels, 64)
