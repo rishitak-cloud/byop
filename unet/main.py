@@ -9,9 +9,9 @@ if __name__=="__main__":
     rate = 3e-4
     batch_size = 32
     epochs = 2
-    datapath = "/Downloads/duts_dataset/"
-    savepath = "/"
-    device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
+    datapath = "/Users/rishitakandpal/Downloads/duts_dataset/"
+    savepath = "/Users/rishitakandpal/Documents/byop/byop"
+    device = torch.device("mps")
     train_dataset = dataset(datapath)
     generator = torch.Generator().manual_seed(42)
     train_dataset, val_dataset = random_split(train_dataset, [0.8,0.2], generator=generator)
