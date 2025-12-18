@@ -1,8 +1,11 @@
 import cv2
 import numpy as np
 from inference import saliency_mask
+from skimage.metrics import structural_similarity as ssim
+
 image_path = ""
 model_path = ""
+img = cv2.imread(image_path)
 prediction=saliency_mask(image_path, model_path)
 mask = prediction.squeeze().cpu().numpy()
 mask = (mask > 0.5).astype(np.uint8)*255
@@ -60,5 +63,21 @@ else:
     verdict = "Off-centre."
 
 #SYMMETRY
+v = np.median(img)
+sigma = 0.33
+lower = int(max(0, (1.0 - sigma) * v))
+upper = int(min(255, (1.0 + sigma) * v))
+canny = cv2.Canny(img, lower, upper)
+c = w//2
+left_part = canny[:, :c]
+right_part = canny[:, -c:]
+right = cv2.flip(right_part, 1)
+score, dif = ssim(left_part, right, full=True)
+if(score > 0.9):
+    verdict = "High symmetry."
+elif(0.8 < score <= 0.9):
+    verdict = "Average symmetry."
+else:
+    verdict = "Not symmetric."
 
 #LEADING LINES
