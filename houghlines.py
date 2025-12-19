@@ -17,12 +17,11 @@ def hough():
     canny = cv2.Canny(blur, lower, upper)
 
     kernel = np.ones((3,3), np.uint8)
-    dilated_edges = cv2.dilate(canny, kernel, iterations=1)
     #cv2.imshow("canny", canny)
 
     h, w = img.shape[:2]
     dim = min(h,w)
-    lines = cv2.HoughLinesP(canny, 1, np.pi/180, int(0.2*dim), int(0.2*dim), int(0.1*dim))
+    lines = cv2.HoughLinesP(canny, 1, np.pi/180, int(0.1*dim), int(0.4*dim), int(0.1*dim))
 
     filtered_lines = []
     if lines is not None:
@@ -37,18 +36,21 @@ def hough():
             if 15 < angle < 75:
                 filtered_lines.append(line)
 
-    # if(len(filtered_lines) < 15):
-    #     kernel = np.ones((3,3), np.uint8)
-    #     dilated_edges = cv2.dilate(canny, kernel, iterations=1)
-    #     cv2.imshow("dilated", dilated_edges)
-    #     lines = cv2.HoughLinesP(dilated_edges, 1, np.pi/180, int(0.2*dim), int(0.2*dim), int(0.05*dim))
+    if(len(filtered_lines) < 10):
+        kernel = np.ones((3,3), np.uint8)
+        dilated_edges = cv2.dilate(canny, kernel, iterations=1)
+        cv2.imshow("dilated", dilated_edges)
+        lines = cv2.HoughLinesP(dilated_edges, 1, np.pi/180, int(0.1*dim), int(0.4*dim), int(0.1*dim))
 
-    for line in filtered_lines:
+    for line in lines:
         x1, y1, x2, y2 = line[0]
         cv2.line(img_bgr, (x1, y1), (x2, y2), (0, 255, 0), 2)
  
     cv2.imshow("some", img_bgr)
     cv2.waitKey()
     return 0
+
+
+
 if __name__=="__main__":
     hough()

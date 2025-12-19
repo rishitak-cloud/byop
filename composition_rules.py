@@ -81,3 +81,23 @@ else:
     verdict = "Not symmetric."
 
 #LEADING LINES
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+lsd = cv2.createLineSegmentDetector(0)
+dlines = lsd.detect(gray)[0]
+h, w = img.shape[:2]
+
+filtered_lines = []
+if dlines is not None:
+    for dline in dlines:
+        x1, y1, x2, y2 = map(int, dline[0])
+        
+        length = np.sqrt((x2-x1)**2 + (y2-y1)**2)
+        
+        angle = np.abs(np.arctan2(y2 - y1, x2 - x1) * 180 / np.pi)
+        if angle > 90:
+            angle = 180 - angle
+        if length > 0.2*w and (15 < angle < 75): 
+            cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 3)
+
+cv2.imshow("LSD Result", img)
+cv2.waitKey(0)

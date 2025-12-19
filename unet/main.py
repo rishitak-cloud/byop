@@ -23,10 +23,10 @@ class Dice(nn.Module):
 if __name__=="__main__":
     rate = 3e-4
     batch_size = 32
-    epochs = 2
+    epochs = 15
     datapath = "/Users/rishitakandpal/Downloads/duts_dataset/"
     savepath = "/Users/rishitakandpal/Documents/byop/byop/trained/"
-    device = torch.device("mps")
+    device = torch.device("cuda")
     base_dataset = dataset(datapath)
     generator = torch.Generator().manual_seed(42)
     train_subset, val_subset = random_split(base_dataset, [0.8,0.2], generator=generator)

@@ -1,7 +1,7 @@
 import torch
 import cv2
 import numpy as np
-from unet_parts import unet
+from unet.unet_parts import unet
 
 def mask(image_path, model_path):
     device = torch.device("cuda")
