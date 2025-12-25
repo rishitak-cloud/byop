@@ -7,5 +7,5 @@ def score(image_path):
     ssl._create_default_https_context = ssl._create_unverified_context
     metric = pyiqa.create_metric('nima', device="cpu")
     score = metric(image_path)
-    v= "NIMA score = ", score.item()
+    v= f"NIMA score = {score.item()}"
     return v

@@ -19,8 +19,8 @@ class analyse:
         else:
             self.cX, self.cY=0, 0
 
-        self.t1 = self.h * 0.1
-        self.t2 = self.w * 0.1
+        self.t1 = self.h * 0.05
+        self.t2 = self.w * 0.05
 
     def thirds(self):
         h_down = self.h/3
@@ -43,7 +43,7 @@ class analyse:
         lined = cv2.line(lined, (int(w_right), 0), (int(w_right), int(self.h)), (255, 0, 0), 2)
         lined = cv2.line(lined, (0, int(h_down)), (int(self.w), int(h_down)), (255, 0, 0), 2)
         lined = cv2.line(lined, (0, int(h_up)), (int(self.w), int(h_up)), (255, 0, 0), 2)
-        circled=cv2.circle(lined, center=(int(self.cX), int(self.cY)), radius=5, color=(0,255,0), thickness=1)
+        circled=cv2.circle(lined, center=(int(self.cX), int(self.cY)), radius=10, color=(0,255,0), thickness=50)
         # cv2.imshow("circled", lined)
         # cv2.waitKey(0)
         return circled, v
@@ -68,7 +68,7 @@ class analyse:
         lined = cv2.line(lined, (int(g_right), 0), (int(g_right), int(self.h)), (255, 0, 0), 2)
         lined = cv2.line(lined, (0, int(g_down)), (int(self.w), int(g_down)), (255, 0, 0), 2)
         lined = cv2.line(lined, (0, int(g_up)), (int(self.w), int(g_up)), (255, 0, 0), 2)
-        circled=cv2.circle(lined, center=(int(self.cX), int(self.cY)), radius=5, color=(0,255,0), thickness=1)
+        circled=cv2.circle(lined, center=(int(self.cX), int(self.cY)), radius=10, color=(0,255,0), thickness=50)
         return circled, v
 
     def centre(self):
@@ -77,7 +77,7 @@ class analyse:
         else:
             v = "Off-centre."
         circled = self.image.copy()
-        circled=cv2.circle(circled, center=(self.cX, self.cY), radius=5, color=(0,255,0), thickness=1)
+        circled=cv2.circle(circled, center=(self.cX, self.cY), radius=10, color=(0,255,0), thickness=50)
         return circled, v
 
     def symmetry(self):
@@ -99,7 +99,7 @@ class analyse:
         score, dif = ssim(left_part, right, full=True, win_size=w_size, data_range=255, channel_axis=2)
 
         if(score > 0.3):
-            v = "Symmetry found."
+            v = f"Symmetry found, score = {score}"
         else:
             v = "Not symmetric."
         dif_visual = (dif * 255).astype(np.uint8)
