@@ -4,13 +4,13 @@ import numpy as np
 from unet.unet_parts import unet
 
 def mask(image_path, model_path):
-    device = torch.device("cuda")
+    device = torch.device("cpu")
     model = unet(in_channels=3, num_classes=1).to(device)
 
     img = cv2.imread(image_path)
     h, w = img.shape[:2]
 
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, map_location='cpu'))
     model.eval()
 
     input_img = cv2.resize(img, (128, 128))
