@@ -2,11 +2,14 @@ import cv2
 import numpy as np
 from inference import mask
 from skimage.metrics import structural_similarity as ssim
+import math
+
 class analyse:
     def __init__(self, image_path, model_path):
         self.image_path = image_path
         self.model_path = model_path
         self.image = cv2.imread(image_path)
+        self.image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
         self.h, self.w = (self.image).shape[:2]
         self.prediction = mask(self.image_path, self.model_path)
         #self.m = self.prediction.squeeze().cpu().numpy()
@@ -72,7 +75,7 @@ class analyse:
         return circled, v
 
     def centre(self):
-        if (abs(self.cX - self.w/2) < self.t2 and abs(self.cY - self.h/2) < self.t1):
+        if (abs(self.cX - self.w/2) < 2*self.t2 and abs(self.cY - self.h/2) < 2*self.t1):
             v = "Object is in the centre."
         else:
             v = "Off-centre."
@@ -86,7 +89,7 @@ class analyse:
         # lower = int(max(0, (1.0 - sigma) * v))
         # upper = int(min(255, (1.0 + sigma) * v))
         # canny = cv2.Canny(image, lower, upper)
-        kernel = np.ones((3,3), np.uint8)
+        kernel = np.ones((2,2), np.uint8)
         canny = self.image.copy()
         canny = cv2.GaussianBlur(canny, (5,5), 0)
         canny = cv2.dilate(canny, kernel, iterations=1)
@@ -98,7 +101,7 @@ class analyse:
         w_size = 7 if left_part.shape[1] >= 7 and left_part.shape[0] >= 7 else 3
         score, dif = ssim(left_part, right, full=True, win_size=w_size, data_range=255, channel_axis=2)
 
-        if(score > 0.3):
+        if(score > 0.4):
             v = f"Symmetry found, score = {score}"
         else:
             v = "Not symmetric."
@@ -110,6 +113,7 @@ class analyse:
         lsd = cv2.createLineSegmentDetector(0)
         dlines = lsd.detect(gray)[0]
         v = "Lines not found."
+        cpy = self.image.copy() 
         if dlines is not None:
             for dline in dlines:
                 x1, y1, x2, y2 = map(int, dline[0])
@@ -119,11 +123,73 @@ class analyse:
                 angle = np.abs(np.arctan2(y2 - y1, x2 - x1) * 180 / np.pi)
                 if angle > 90:
                     angle = 180 - angle
-                if length > 0.2*self.w and (15 < angle < 75): 
-                    cv2.line(self.image, (x1, y1), (x2, y2), (255, 0, 0), 3)
+                if length > 0.2*self.w and (15 < angle < 75):
+                    cv2.line(cpy, (x1, y1), (x2, y2), (255, 0, 0), 3)
                     v = "Lines found."
 
         # cv2.imshow("LSD Result", self.image)
         # cv2.waitKey(0)
         
-        return self.image, v
+        return cpy, v
+
+    def get_best_crop_target(w, h, cx, cy):
+        targets = {
+            "Thirds_TL": (0.333, 0.333), "Thirds_TR": (0.666, 0.333),
+            "Thirds_BL": (0.333, 0.666), "Thirds_BR": (0.666, 0.666),
+            "Phi_TL": (0.382, 0.382), "Phi_TR": (0.618, 0.382),
+            "Phi_BL": (0.382, 0.618), "Phi_BR": (0.618, 0.618),
+            "Center": (0.5, 0.5)
+        }
+
+        best_name = None
+        best_ratios = (0.5, 0.5)
+        min_dist = float('inf')
+
+        for name, (rx, ry) in targets.items():
+            target_x = w * rx
+            target_y = h * ry
+            dist = math.sqrt((target_x - cx)**2 + (target_y - cy)**2)
+            
+            if dist < min_dist:
+                min_dist = dist
+                best_name = name
+                best_ratios = (rx, ry)
+
+        return best_name, best_ratios
+
+    def solve_1d_crop(current_pos, current_len, target_ratio):
+        len_a = int(current_pos / target_ratio)
+        dist_from_end = current_len - current_pos
+        len_b = int(dist_from_end / (1.0 - target_ratio)) 
+
+        valid_a = len_a <= current_len
+        valid_b = len_b <= current_len
+        
+        if valid_a and valid_b:
+            if len_a > len_b:
+                return 0, len_a
+            else:
+                cut = current_len - len_b
+                return cut, current_len
+                
+        elif valid_a:
+            return 0, len_a
+        elif valid_b:
+            cut = current_len - len_b
+            return cut, current_len
+        else:
+            return 0, current_len
+
+    def auto_fix_image(self):
+        target_name, (tx_ratio, ty_ratio) = analyse.get_best_crop_target(self.w, self.h, self.cX, self.cY)
+
+        x_start, x_end = analyse.solve_1d_crop(self.cX, self.w, tx_ratio)
+        y_start, y_end = analyse.solve_1d_crop(self.cY, self.h, ty_ratio)
+        
+        new_w = x_end - x_start
+        new_h = y_end - y_start
+        if new_w < (self.w * 0.5) or new_h < (self.h * 0.5):
+            return self.image
+
+        cropped_image = self.image[y_start:y_end, x_start:x_end]
+        return cropped_image, target_name

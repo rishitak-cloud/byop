@@ -1,0 +1,98 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class DoubleConv(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.conv_op=nn.Sequential(
+            nn.Conv2d(in_channels,out_channels,kernel_size=3,padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+    def forward(self, x):
+            return self.conv_op(x)
+        
+class DownSample(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.conv=DoubleConv(in_channels, out_channels)
+        self.pool=nn.MaxPool2d(kernel_size=2, stride=2) 
+    def forward(self, x):
+        down = self.conv(x)
+        p=self.pool(down)
+        return down, p
+
+class UpSample(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.up=nn.ConvTranspose2d(in_channels, in_channels//2, kernel_size=2, stride=2)
+        self.conv=DoubleConv(in_channels, out_channels)
+    def forward(self, x1, x2):
+        x1 = self.up(x1)
+        x = torch.cat([x1, x2], dim=1)
+        return self.conv(x)
+
+class AttentionBlock(nn.Module):
+    def __init__(self, gating, skip, comb):
+        super().__init__()
+        self.wg = nn.Sequential(
+            nn.Conv2d(gating, comb, kernel_size=1, padding=0, stride=1),
+            nn.BatchNorm2d(comb)
+        )
+        self.wx = nn.Sequential(
+            nn.Conv2d(skip, comb, kernel_size=1, padding=0, stride=2),
+            nn.BatchNorm2d(comb)
+        )
+        self.psi = nn.Sequential(
+            nn.Conv2d(comb, 1, kernel_size=1, padding=0, stride=1),
+            nn.BatchNorm2d(1),
+            nn.Sigmoid()
+        )
+        self.relu = nn.ReLU(inplace=True)
+    def forward(self, g, x):
+        g1 = self.wg(g)
+        x1 = self.wx(x)
+        cat = self.relu(g1+x1)
+        psi = self.psi(cat)
+        psi = F.interpolate(psi, size=x.shape[2:], mode='bilinear', align_corners=False)
+        return x*psi
+
+class unet(nn.Module):
+    def __init__(self, in_channels, num_classes):
+        super().__init__()
+        self.down_convolution_1 = DownSample(in_channels, 32)
+        self.down_convolution_2 = DownSample(32, 64)
+        self.down_convolution_3 = DownSample(64, 128)
+        self.down_convolution_4 = DownSample(128, 256)
+        self.bottle_neck = DoubleConv(256, 512)
+        self.up_convolution_1 = UpSample(512, 256)
+        self.att_1 = AttentionBlock(256, 128, 128)
+        self.up_convolution_2 = UpSample(256, 128)
+        self.att_2 = AttentionBlock(128, 64, 64)
+        self.up_convolution_3 = UpSample(128, 64)
+        self.att_3 = AttentionBlock(64, 32, 32)
+        self.up_convolution_4 = UpSample(64, 32)
+        self.att_4 = AttentionBlock(32,16, 16)
+        self.out = nn.Conv2d(in_channels=32, out_channels=num_classes, kernel_size=1)
+
+    def forward(self, x):
+       down_1, p1 = self.down_convolution_1(x)
+       down_2, p2 = self.down_convolution_2(p1)
+       down_3, p3 = self.down_convolution_3(p2)
+       down_4, p4 = self.down_convolution_4(p3)
+       b = self.bottle_neck(p4)
+       a1 = self.att_1(b, down_4)
+       up_1 = self.up_convolution_1(b, a1)
+       a2 = self.att_2(up_1, down_3)
+       up_2 = self.up_convolution_2(up_1, a2)
+       a3 = self.att_3(up_2, down_2)
+       up_3 = self.up_convolution_3(up_2, a3)
+       a4 = self.att_4(up_3, down_1)
+       up_4 = self.up_convolution_4(up_3, a4)
+       
+       out = self.out(up_4)
+       return out
