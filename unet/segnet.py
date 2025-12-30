@@ -19,7 +19,7 @@ class EncoderBlock(nn.Module):
         super().__init__()
         self.layers = nn.ModuleList()
         for i in range(depth):
-            self.layers.append(ConvBlock(in_channels if i == 0 else out_channels, out_channels, kernel_size=3, padding=1))
+            self.layers.append(ConvBlock(in_channels if i == 0 else out_channels, out_channels))
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2, return_indices=True)
 
     def forward(self, x):
@@ -36,7 +36,7 @@ class DecoderBlock(nn.Module):
         for i in range(depth):
             if i == depth - 1 and classification:
                 self.layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))
-            if i==depth-1:
+            elif i==depth-1:
                 self.layers.append(ConvBlock(in_channels, out_channels))
             else:
                 self.layers.append(ConvBlock(in_channels, in_channels))
