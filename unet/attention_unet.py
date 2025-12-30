@@ -70,13 +70,13 @@ class unet(nn.Module):
         self.down_convolution_4 = DownSample(128, 256)
         self.bottle_neck = DoubleConv(256, 512)
         self.up_convolution_1 = UpSample(512, 256)
-        self.att_1 = AttentionBlock(256, 128, 128)
+        self.att_1 = AttentionBlock(512, 256, 256)
         self.up_convolution_2 = UpSample(256, 128)
-        self.att_2 = AttentionBlock(128, 64, 64)
+        self.att_2 = AttentionBlock(256, 128, 128)
         self.up_convolution_3 = UpSample(128, 64)
-        self.att_3 = AttentionBlock(64, 32, 32)
+        self.att_3 = AttentionBlock(128, 64, 64)
         self.up_convolution_4 = UpSample(64, 32)
-        self.att_4 = AttentionBlock(32,16, 16)
+        self.att_4 = AttentionBlock(64,32, 32)
         self.out = nn.Conv2d(in_channels=32, out_channels=num_classes, kernel_size=1)
 
     def forward(self, x):
