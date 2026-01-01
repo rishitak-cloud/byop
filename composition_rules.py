@@ -189,7 +189,7 @@ class analyse:
         new_w = x_end - x_start
         new_h = y_end - y_start
         if new_w < (self.w * 0.5) or new_h < (self.h * 0.5):
-            return self.image
+            return self.image, target_name
 
         cropped_image = self.image[y_start:y_end, x_start:x_end]
         return cropped_image, target_name

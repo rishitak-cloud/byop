@@ -11,7 +11,7 @@ st.set_page_config(page_title="FrameAgent")
 
 st.title("FrameAgent")
 img = st.file_uploader(label="Choose a file", type=["jpg", "jpeg", "png", "webp"])
-model = "/Users/rishitakandpal/Downloads/unet_model.pth"
+model = "/Users/rishitakandpal/Downloads/model.onnx"
 
 if img is not None:
     image = Image.open(img)
@@ -32,10 +32,7 @@ if img is not None:
     with col3: st.image(symm, "SSIM Map for Symmetry", width=200)
     with col4: st.image(line, "Leading Lines", width=300)
 
-    if v5!="Lines found.":
-        crop, target = analyse(path, model).auto_fix_image()
-        st.image(crop, f"Suggested Crop {target}", width = 300)
-    elif v3!="Object is in the centre.":
+    if v5!="Lines found." and v3!="Object is in the centre.":
         crop, target = analyse(path, model).auto_fix_image()
         st.image(crop, f"Suggested Crop {target}", width = 300)
     else:
