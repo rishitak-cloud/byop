@@ -1,17 +1,16 @@
 import cv2
 import numpy as np
-from inference import mask
+from u2net import mask
 from skimage.metrics import structural_similarity as ssim
 import math
 
 class analyse:
-    def __init__(self, image_path, model_path):
+    def __init__(self, image_path):
         self.image_path = image_path
-        self.model_path = model_path
         self.image = cv2.imread(image_path)
         self.image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
         self.h, self.w = (self.image).shape[:2]
-        self.prediction = mask(self.image_path, self.model_path)
+        self.prediction = mask(self.image_path)
         #self.m = self.prediction.squeeze().cpu().numpy()
         self.m = self.prediction.squeeze()
         self.m = (self.m > 0.5).astype(np.uint8)*255
@@ -46,7 +45,7 @@ class analyse:
         lined = cv2.line(lined, (int(w_right), 0), (int(w_right), int(self.h)), (255, 0, 0), 2)
         lined = cv2.line(lined, (0, int(h_down)), (int(self.w), int(h_down)), (255, 0, 0), 2)
         lined = cv2.line(lined, (0, int(h_up)), (int(self.w), int(h_up)), (255, 0, 0), 2)
-        circled=cv2.circle(lined, center=(int(self.cX), int(self.cY)), radius=10, color=(0,255,0), thickness=50)
+        circled=cv2.circle(lined, center=(int(self.cX), int(self.cY)), radius=int(0.1*self.h), color=(0,255,0), thickness=10)
         # cv2.imshow("circled", lined)
         # cv2.waitKey(0)
         return circled, v
@@ -71,7 +70,7 @@ class analyse:
         lined = cv2.line(lined, (int(g_right), 0), (int(g_right), int(self.h)), (255, 0, 0), 2)
         lined = cv2.line(lined, (0, int(g_down)), (int(self.w), int(g_down)), (255, 0, 0), 2)
         lined = cv2.line(lined, (0, int(g_up)), (int(self.w), int(g_up)), (255, 0, 0), 2)
-        circled=cv2.circle(lined, center=(int(self.cX), int(self.cY)), radius=10, color=(0,255,0), thickness=50)
+        circled=cv2.circle(lined, center=(int(self.cX), int(self.cY)), radius=int(0.1*self.h), color=(0,255,0), thickness=10)
         return circled, v
 
     def centre(self):
