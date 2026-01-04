@@ -187,8 +187,8 @@ class analyse:
         
         new_w = x_end - x_start
         new_h = y_end - y_start
-        if new_w < (self.w * 0.5) or new_h < (self.h * 0.5):
-            return self.image, target_name
+        if new_w < (self.w * 0.6) or new_h < (self.h * 0.6):
+            return self.image, "is too tight, reverting to original photo."
 
         cropped_image = self.image[y_start:y_end, x_start:x_end]
         return cropped_image, target_name

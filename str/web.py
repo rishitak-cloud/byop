@@ -18,7 +18,9 @@ if img is not None:
     image = Image.open(img)
     image.save("/Users/rishitakandpal/Downloads/photo.jpg")
     path = "/Users/rishitakandpal/Downloads/photo.jpg"
-    st.image(img, "Uploaded file", width=300)
+    a1, a2, a3 = st.columns(3)
+    with a2: st.image(img, "Uploaded file", width=300)
+    st.divider()
     col1, col2 = st.columns(2)
     col3, col4 = st.columns(2)
     thirds, v1 = analyse(path).thirds()
@@ -27,15 +29,17 @@ if img is not None:
     symm, v4 = analyse(path).symmetry()
     line, v5 = analyse(path).lines()
     sc = score(path)
-    with col1: st.image(thirds, "Grid of Thirds", width=300) 
-    with col2: st.image(golden, "Phi Grid for Golden Ratio", width=300)
+    with col1: st.image(thirds, "Grid of Thirds: The photo is divided by 4 lines, on one-thirds and two-thirds of the dimensions. Aligning the object at the points of intersection improves composition.", width=300) 
+    with col2: st.image(golden, "Phi Grid for Golden Ratio: The grid is divided in the ratio of 0.382 and 0.612 in both the dimensions.", width=300)
     # with col3: st.image(centre, "Centroid encircled", width=300)
-    with col3: st.image(symm, "SSIM Map for Symmetry", width=200)
+    with col3: st.image(symm, "SSIM Map for Symmetry: In an SSIM Map, white regions indicate full symmetry and the black regions indicate complete mismatch.", width=300)
     with col4: st.image(line, "Leading Lines", width=300)
-
+    st.space()
+    c1, c2, c3 = st.columns(3)
     if v5!="Lines found." and v3!="Object is in the centre.":
+        st.divider()
         crop, target = analyse(path).auto_fix_image()
-        st.image(crop, f"Suggested Crop {target}", width = 300)
+        with c2: st.image(crop, f"Suggested Crop {target}", width = 300)
     else:
         st.divider()
         st.write("Not suggesting crop for leading lines and symmetry.")
@@ -46,4 +50,5 @@ if img is not None:
     st.badge(v4, color="red" if v4=="Not symmetric." else "green")
     st.badge(v5, color="red" if v5=="Lines not found." else "green")
     st.badge(sc)
+    st.write("If you think that the score is low: NIMA is a measure of the aesthetic quality of a picture, which may not always match human perception. NIMA models were trained heavily on photos that have a clear focal point (a person, a flower, a bird). When it scans an image, if doesn't find a single sharp object to lock onto, or sees a texture gradient and isn't sure what it's supposed to be judging, then it defaults to a safe/average score. It also rates contrasts higher in some cases.")
 
