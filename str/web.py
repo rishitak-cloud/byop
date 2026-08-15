@@ -4,7 +4,7 @@ import numpy as np
 from composition_rules import analyse
 from nima_import import score
 from PIL import Image
-from streamlit_cropper import st_cropper
+#from streamlit_cropper import st_cropper
 import cv2
 
 st.set_page_config(page_title="FrameAgent")

@@ -1,5 +1,13 @@
 [theme]
+base = "dark"
 font = "sans-serif"
 headingFont = "sans-serif"
 codeFont = "monospace"
-backgroundColor="#E5CCFF"
+# dark background makes the photos and the grid overlays pop
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#191C24"
+textColor = "#E8E6E3"
+primaryColor = "#A855F7"
+
+# previous light theme, if you want it back:
+# backgroundColor = "#E5CCFF"

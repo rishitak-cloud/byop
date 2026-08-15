@@ -115,7 +115,7 @@ class analyse:
         cpy = self.image.copy() 
         if dlines is not None:
             for dline in dlines:
-                x1, y1, x2, y2 = map(int, dline[0])
+                x1, y1, x2, y2 = map(int, dline.flatten())
                 
                 length = np.sqrt((x2-x1)**2 + (y2-y1)**2)
                 
